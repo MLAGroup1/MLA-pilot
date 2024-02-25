@@ -1,31 +1,39 @@
-import React from 'react';
-import { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import './App.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import NavbarComponent from './components/navbar';
-import TrackExercise from './components/trackExercise';
-import Statistics from './components/statistics';
-import Footer from './components/footer';
-import Login from './components/login';
-import Signup from './components/signup';
-import Journal from './components/journal';
-import logo from './img/CFG_logo.png'; // Update the path to your logo file
+import React from "react";
+import { useState } from "react";
+import { BrowserRouter as Router } from "react-router-dom";
+import "./App.css";
+import "bootstrap/dist/css/bootstrap.min.css";
+import NavbarComponent from "./components/navbar";
+import Footer from "./components/footer";
+import logo from "./img/CFG_logo.png"; // Update the path to your logo file
+import RoutesConfig from "./routes/routesConfig";
 
-function App() {
+export const UserContext = React.createContext();
+
+const UserProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState(''); 
+  const [currentUser, setCurrentUser] = useState("");
 
   const handleLogout = () => {
-    setIsLoggedIn(false); 
-    setCurrentUser(''); 
+    setIsLoggedIn(false);
+    setCurrentUser("");
   };
 
-  const handleLogin = (username) => { 
+  const handleLogin = (username) => {
     setIsLoggedIn(true);
     setCurrentUser(username);
   };
 
+  return (
+    <UserContext.Provider
+      value={{ isLoggedIn, currentUser, handleLogin, handleLogout }}
+    >
+      {children}
+    </UserContext.Provider>
+  );
+};
+
+function App() {
   return (
     <div className="App">
       <Router>
@@ -34,22 +42,20 @@ function App() {
           <img src={logo} alt="CFG Fitness App Logo" id="appLogo" />
         </div>
 
-        {isLoggedIn && <NavbarComponent onLogout={handleLogout} />}
+        <UserProvider>
+          <UserContext.Consumer>
+            {(context) =>
+              context.isLoggedIn && (
+                <NavbarComponent onLogout={context.handleLogout} />
+              )
+            }
+          </UserContext.Consumer>
 
-        <div className="componentContainer">
-          <Routes>
-            <Route path="/login" element={isLoggedIn ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} />
-            <Route path="/signup" element={isLoggedIn ? <Navigate to="/" /> : <Signup onSignup={(username) => {
-              setIsLoggedIn(true);
-              setCurrentUser(username);
-            }} />} />
-            <Route path="/trackExercise" element={isLoggedIn ? <TrackExercise currentUser={currentUser} /> : <Navigate to="/login" />} />
-            <Route path="/statistics" element={isLoggedIn ? <Statistics currentUser={currentUser} /> : <Navigate to="/login" />} />
-            <Route path="/journal" element={isLoggedIn ? <Journal currentUser={currentUser} /> : <Navigate to="/login" />} />
-            <Route path="/" element={isLoggedIn ? <Navigate to="/trackExercise" /> : <Navigate to="/login" />} />
-          </Routes>
-        </div>
-        <Footer />
+          <div className="componentContainer">
+            <RoutesConfig />
+          </div>
+          <Footer />
+        </UserProvider>
       </Router>
     </div>
   );
