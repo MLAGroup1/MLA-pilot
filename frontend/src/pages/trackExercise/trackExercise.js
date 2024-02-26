@@ -1,24 +1,25 @@
-import React, { useState } from 'react';
-import { Button, Form } from 'react-bootstrap';
-import { trackExercise } from '../../services/api';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import IconButton from '@material-ui/core/IconButton';
-import DirectionsRunIcon from '@material-ui/icons/DirectionsRun';
-import BikeIcon from '@material-ui/icons/DirectionsBike';
-import PoolIcon from '@material-ui/icons/Pool';
-import FitnessCenterIcon from '@material-ui/icons/FitnessCenter';
-import OtherIcon from '@material-ui/icons/HelpOutline';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import React, { useState } from "react";
+import { Button, Form, Dropdown } from "react-bootstrap";
+import { trackExercise } from "../../services/api";
+import "bootstrap/dist/css/bootstrap.min.css";
+import IconButton from "@material-ui/core/IconButton";
+import DirectionsRunIcon from "@material-ui/icons/DirectionsRun";
+import BikeIcon from "@material-ui/icons/DirectionsBike";
+import PoolIcon from "@material-ui/icons/Pool";
+import FitnessCenterIcon from "@material-ui/icons/FitnessCenter";
+import OtherIcon from "@material-ui/icons/HelpOutline";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const TrackExercise = ({ currentUser }) => {
   const [state, setState] = useState({
-    exerciseType: '',
-    description: '',
+    exerciseType: "",
+    description: "",
     duration: 0,
     date: new Date(),
+    bodyWeight: 0, // Added bodyWeight state
   });
-  const [message, setMessage] = useState(''); 
+  const [message, setMessage] = useState("");
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -33,74 +34,113 @@ const TrackExercise = ({ currentUser }) => {
       console.log(response.data);
 
       setState({
-        exerciseType: '',
-        description: '',
+        exerciseType: "",
+        description: "",
         duration: 0,
         date: new Date(),
+        bodyWeight: state.bodyWeight, // Preserve bodyWeight after submitting
       });
 
-      setMessage('Activity logged successfully! Well done!');
-      setTimeout(() => setMessage(''), 2000);
-      
+      setMessage("Activity logged successfully! Well done!");
+      setTimeout(() => setMessage(""), 2000);
     } catch (error) {
-      console.error('There was an error logging your activity!', error);
+      console.error("There was an error logging your activity!", error);
+    }
+  };
+
+  const handleExerciseChange = (selectedExercise) => {
+    setState({ ...state, exerciseType: selectedExercise });
+    console.log(state);
+  };
+
+  const calculateCalories = () => {
+    const MET = 1; // Assuming MET value for general activity
+    const calories = (state.duration * MET * state.bodyWeight) / 200;
+    return calories;
+  };
+
+  const handleCalculateCalories = () => {
+    const userWeight = prompt("Please enter your body weight in kilograms:");
+    if (userWeight) {
+      setState({ ...state, bodyWeight: parseFloat(userWeight) }); // Update bodyWeight in state
+      const caloriesBurned = calculateCalories();
+      alert(`Calories burned: ${caloriesBurned.toFixed(2)}`);
     }
   };
 
   return (
     <div>
       <h3>Track exercise</h3>
-      <Form onSubmit={onSubmit} style={{ maxWidth: '400px', margin: 'auto' }}>
-        
+      <Form onSubmit={onSubmit} style={{ maxWidth: "400px", margin: "auto" }}>
         <Form.Group controlId="formDate" className="form-margin">
           <Form.Label>Date:</Form.Label>
-          <DatePicker 
+          <DatePicker
             selected={state.date}
             onChange={(date) => setState({ ...state, date })}
             dateFormat="yyyy/MM/dd"
           />
         </Form.Group>
-        <div style={{ marginBottom: '20px' }}>
-          <IconButton color={state.exerciseType === 'Running' ? "primary" : "default"} onClick={() => setState({ ...state, exerciseType: 'Running' })}>
-            <DirectionsRunIcon fontSize="large" />
-          </IconButton>
-          <IconButton color={state.exerciseType === 'Cycling' ? "primary" : "default"} onClick={() => setState({ ...state, exerciseType: 'Cycling' })}>
-            <BikeIcon fontSize="large" />
-          </IconButton>
-          <IconButton color={state.exerciseType === 'Swimming' ? "primary" : "default"} onClick={() => setState({ ...state, exerciseType: 'Swimming' })}>
-            <PoolIcon fontSize="large" />
-          </IconButton>
-          <IconButton color={state.exerciseType === 'Gym' ? "primary" : "default"} onClick={() => setState({ ...state, exerciseType: 'Gym' })}>
-            <FitnessCenterIcon fontSize="large" />
-          </IconButton>
-          <IconButton color={state.exerciseType === 'Other' ? "primary" : "default"} onClick={() => setState({ ...state, exerciseType: 'Other' })}>
-            <OtherIcon fontSize="large" /> 
-          </IconButton>
-        </div>
-        <Form.Group controlId="description" style={{ marginBottom: '20px' }}>
+
+        <Dropdown>
+          <Dropdown.Toggle variant="success" id="dropdown-basic">
+            {state.exerciseType ? state.exerciseType : "Select Exercise"}
+          </Dropdown.Toggle>
+
+          <Dropdown.Menu>
+            <Dropdown.Item onClick={() => handleExerciseChange("Running")}>
+              Running
+            </Dropdown.Item>
+            <Dropdown.Item onClick={() => handleExerciseChange("Cycling")}>
+              Cycling
+            </Dropdown.Item>
+            <Dropdown.Item onClick={() => handleExerciseChange("Swimming")}>
+              Swimming
+            </Dropdown.Item>
+            <Dropdown.Item onClick={() => handleExerciseChange("Gym")}>
+              Gym
+            </Dropdown.Item>
+            <Dropdown.Divider />
+            <Dropdown.Item onClick={() => handleExerciseChange("Badminton")}>
+              Sports - Badminton
+            </Dropdown.Item>
+            <Dropdown.Item onClick={() => handleExerciseChange("Cricket")}>
+              Sports - Cricket
+            </Dropdown.Item>
+            <Dropdown.Item onClick={() => handleExerciseChange("Tennis")}>
+              Sports - Tennis
+            </Dropdown.Item>
+          </Dropdown.Menu>
+        </Dropdown>
+
+        <Form.Group controlId="description" style={{ marginBottom: "20px" }}>
           <Form.Label>Description:</Form.Label>
-          <Form.Control 
+          <Form.Control
             as="textarea"
             rows={3}
-            required 
-            value={state.description} 
-            onChange={(e) => setState({ ...state, description: e.target.value })}
+            required
+            value={state.description}
+            onChange={(e) =>
+              setState({ ...state, description: e.target.value })
+            }
           />
         </Form.Group>
-        <Form.Group controlId="duration" style={{ marginBottom: '40px' }}>
+        <Form.Group controlId="duration" style={{ marginBottom: "40px" }}>
           <Form.Label>Duration (in minutes):</Form.Label>
-          <Form.Control 
-            type="number" 
-            required 
-            value={state.duration} 
+          <Form.Control
+            type="number"
+            required
+            value={state.duration}
             onChange={(e) => setState({ ...state, duration: e.target.value })}
           />
         </Form.Group>
         <Button variant="success" type="submit">
           Save activity
         </Button>
+        <Button variant="primary" onClick={handleCalculateCalories}>
+          Calculate Calories
+        </Button>
       </Form>
-      {message && <p style={{color: 'green'}}>{message}</p>}
+      {message && <p style={{ color: "green" }}>{message}</p>}
     </div>
   );
 };
