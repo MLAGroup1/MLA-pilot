@@ -17,7 +17,13 @@ const activityTrackingAPI = api(getUrlAPI(5300));
 const analyticsAPI = api(getUrlAPI(5050));
 
 export const trackExercise = async (payload) =>
-  activityTrackingAPI.post(`/exercises/add`, payload);
+  activityTrackingAPI.post(`/exercises/add`, payload);  
+
+export const getCustomExercises = async (payload) =>
+  activityTrackingAPI.get(`/customExercises/`);
+
+export const createCustomExercise = async (payload) =>
+  activityTrackingAPI.post(`/customExercises/add`, payload);
 
 export const getWeeklyStats = async (currentUser, startDate, endDate) => {
   analyticsAPI.get(
