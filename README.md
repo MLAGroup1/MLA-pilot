@@ -74,7 +74,9 @@ if you're missing any version, please contact your course administrator.
 
 ### Building entire project with Docker (+ starting containers up)
 ```sh
-docker-compose up --build
+docker-compose build --no-cache && docker-compose up -d
+docker-compose build --no-cache [servicename] && docker-compose up -d
+
 ```
 
 ### Start existing containers (no rebuild of images)
