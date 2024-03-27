@@ -7,7 +7,6 @@ const exerciseSchema = new Schema(
     exerciseType: {
       type: String,
       required: true,
-      enum: ['Running', 'Cycling', 'Swimming', 'Gym', 'Other']
     },
     description: { type: String, required: false },
     duration: { 
@@ -19,6 +18,15 @@ const exerciseSchema = new Schema(
         },
         min: [1, 'Duration should be positive.']
     },
+    calories: { 
+      type: Number, 
+      required: true,
+      validate: {
+          validator: Number.isInteger,
+          message: 'Calories should be an integer.'
+      },
+      min: [0, 'Calories should be positive.']
+  },
     date: { type: Date, required: true },
   },
   { timestamps: true }
